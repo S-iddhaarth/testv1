@@ -1,4 +1,4 @@
-name: Build and Tag Docker Image
+name: Build, Push to JFrog, and Deploy to ACI
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
       
 jobs:
-  build-and-tag:
+  build-tag-push-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,24 +18,42 @@ jobs:
           JF_URL: ${{ vars.JF_URL }}
           JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
 
-      - name: Build Tag and push Docker Image
+      - name: Build, Tag, and Push Docker Image
         env:
           IMAGE_NAME: trialvu3lnk.jfrog.io/testv1-docker/jfrog-docker-example-image:${{ github.run_number }}
         run: |
           jf docker build -t $IMAGE_NAME .
           jf docker push $IMAGE_NAME
-          
-      - name: Publish Build info With JFrog CLI
+
+      - name: Publish Build Info with JFrog CLI
         env:
-          # Generated and maintained by GitHub
           JFROG_CLI_BUILD_NAME: jfrog-docker-build-example
-          # JFrog organization secret
-          JFROG_CLI_BUILD_NUMBER : ${{ github.run_number }}
+          JFROG_CLI_BUILD_NUMBER: ${{ github.run_number }}
         run: |
-          # Export the build name and build nuber
-          # Collect environment variables for the build
           jf rt build-collect-env
-          # Collect VCS details from git and add them to the build
           jf rt build-add-git
-          # Publish build info
           jf rt build-publish
+
+      # 🔥 NEW PART: Deploy to Azure Container Instance (ACI)
+
+      - name: Install Azure CLI
+        uses: azure/setup-azure@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ vars.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Container Instance
+        env:
+          IMAGE_NAME: trialvu3lnk.jfrog.io/testv1-docker/jfrog-docker-example-image:${{ github.run_number }}
+        run: |
+          az container create \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --name my-container-${{ github.run_number }} \
+            --image $IMAGE_NAME \
+            --registry-login-server trialvu3lnk.jfrog.io \
+            --registry-username ${{ secrets.JF_USER }} \
+            --registry-password ${{ secrets.JF_PASSWORD }} \
+            --dns-name-label my-container-${{ github.run_number }}-dns \
+            --ports 80
