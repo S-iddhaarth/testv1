@@ -58,7 +58,7 @@ jobs:
             --name my-container-${{ github.run_number }}\
             --image $IMAGE_NAME \
             --registry-login-server trialvu3lnk.jfrog.io \
-            --registry-username ${{ secrets.JF_USER }} \
-            --registry-password ${{ secrets.JF_PASSWORD }} \
+            --registry-username ${{ secrets.JF_USER }}\
+            --registry-password ${{ secrets.JF_PASSWORD }}\
             --dns-name-label my-container-${{ github.run_number }}-dns \
             --ports 80
