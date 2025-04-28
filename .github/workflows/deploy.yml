@@ -41,7 +41,7 @@ jobs:
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
       - name: Azure Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -50,7 +50,7 @@ jobs:
           IMAGE_NAME: trialvu3lnk.jfrog.io/testv1-docker/jfrog-docker-example-image:${{ github.run_number }}
         run: |
           az container create \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
             --name my-container-${{ github.run_number }} \
             --image $IMAGE_NAME \
             --registry-login-server trialvu3lnk.jfrog.io \
