@@ -37,19 +37,20 @@ jobs:
       # 🔥 NEW PART: Deploy to Azure Container Instance (ACI)
 
       - name: Install Azure CLI
-        uses: azure/setup-azure@v3
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ vars.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Container Instance
         env:
           IMAGE_NAME: trialvu3lnk.jfrog.io/testv1-docker/jfrog-docker-example-image:${{ github.run_number }}
         run: |
           az container create \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --name my-container-${{ github.run_number }} \
             --image $IMAGE_NAME \
             --registry-login-server trialvu3lnk.jfrog.io \
