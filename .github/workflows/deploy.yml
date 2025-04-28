@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
-      
+permissions:
+  id-token: write   # Required for authenticating with external services like Azure
+  contents: read  
 jobs:
   build-tag-push-deploy:
     runs-on: ubuntu-latest
